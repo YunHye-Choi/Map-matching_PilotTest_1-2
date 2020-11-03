@@ -62,7 +62,7 @@ public class RoadNetwork {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }
         } else if (testNo == 3) { // 유림이 데이터
-
+//gmdma
         } return routePoints;
     }
 }
