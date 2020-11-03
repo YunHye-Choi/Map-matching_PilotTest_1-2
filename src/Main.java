@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("===== [YSY] Map-matching PilotTest 1-2 =====");
-        int testNo = 2; // 여기만 바꿔주면 됨 (1, 2, 3)
+        int testNo = 2; // 여기만 바꿔주면 됨 (1-세정, 2-유네, 3-유림)
         FileIO fileIO = new FileIO(testNo);
         // 파일에서 읽어와 도로네트워크 생성
         RoadNetwork roadNetwork = fileIO.generateRoadNetwork();
@@ -30,9 +30,6 @@ public class Main {
             //System.out.println(gpsPointArrayList.get(i));
             //Thread.sleep(500); // 500ms 마다 출력
         }
-
-        System.out.println("test4");
-        System.out.println(roadNetwork.routePoints(1));/////////////////
 
         //유림이가 썼던 코드
         Point gpsPoint = new Point(1.0,2.0);
