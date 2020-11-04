@@ -1,6 +1,8 @@
+import javafx.util.Pair;
 import sun.management.AgentConfigurationError;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RoadNetwork {
 
@@ -37,12 +39,24 @@ public class RoadNetwork {
     public Link getLink (int nodeID_s, int nodeID_e) {
         for (Link currLink : linkArrayList) {
             if ((currLink.getStartNodeID() == nodeID_s) && (currLink.getEndNodeID() == nodeID_e)
-            || (currLink.getStartNodeID() == nodeID_e) && (currLink.getEndNodeID() == nodeID_s)) {
+                    || (currLink.getStartNodeID() == nodeID_e) && (currLink.getEndNodeID() == nodeID_s)) {
                 return currLink;
-                }
+            }
         }
         // 탐색에 실패한 경우 nodeId가 -1인 Link반환
         return new Link(-1,-1,-1,(double)-1);
+    }
+    List<Pair<Link,Integer>> getLink1 (int nodeID) {
+        List<Pair<Link,Integer>> pairs = new ArrayList<>();
+        for (Link currLink : linkArrayList) {
+            if (currLink.getStartNodeID() == nodeID) {
+                pairs.add(new Pair<Link,Integer>(currLink,currLink.getEndNodeID()));
+            }
+            else if(currLink.getEndNodeID() == nodeID){
+                pairs.add(new Pair<Link,Integer>(currLink,currLink.getStartNodeID()));
+            }
+        }
+        return pairs;
     }
 
     // testNo에 맞게 경로 Point로 생성하는 작업
@@ -50,11 +64,14 @@ public class RoadNetwork {
     /*왼쪽에서 오른쪽으로 가는 방향만 고려함 (왼, 오를 따질 수 없는 경우는 아래에서 위로 가는 방향만 고려)
      *되는 루트 →, ↑, ↗,↘
      *안되는 루트: ←, ↓, ↙, ↖
-    * */
+     * */
     public ArrayList<Point> routePoints (int testNo) {
         ArrayList<Point> routePoints = new ArrayList<>();
         if (testNo == 1) { // 세정이 데이터
-
+            int[] routeNodes = {0, 1, 9, 10, 11, 19, 28, 36, 44, 45, 46, 47, 55};
+            for (int i=0; i<routeNodes.length-1; i++) {
+                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
+            }
         } else if (testNo == 2) { // 유네 데이터
             // node0 에서 node 55로 가는 경로
             int[] routeNodes = {0, 6, 12, 25, 26, 27, 33, 34};
@@ -66,5 +83,4 @@ public class RoadNetwork {
         } return routePoints;
     }
 }
-
 

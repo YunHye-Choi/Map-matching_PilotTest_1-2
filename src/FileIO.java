@@ -72,7 +72,6 @@ public class FileIO {
                     // xs가 5.1등과 같이 (int)5.1 즉 5보다 큰 경우 (int)5.1 즉 5는 involvingPoint가 될수없음
                     // 5.0등인 case는 else이하 로직을 수행할 수 있도록 함
                     if (x_cord < xs) continue;
-
                         // involvingPointList에 Point 추가
                     else {
                         involvingPointList.add(new Point((double) x_cord, ys));
