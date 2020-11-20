@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class FileIO {
     // 파일이 저장된 path name
     // 세정: 1, 윤혜: 2, 유림: 3
-    String directoryName = "data1"; // 이거 숫자만 변경하면됨!
+    String directoryName = "data2"; // 이거 숫자만 변경하면됨!
 
     RoadNetwork generateRoadNetwork () throws IOException {
 

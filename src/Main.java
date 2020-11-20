@@ -15,19 +15,30 @@ public class Main {
 
         GenerateGPSPoint(roadNetwork.linkArrayList, gpsPointArrayList, routePointArrayList);
 
-        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
-        for (int i = 0; i < gpsPointArrayList.size(); i++) {
-            System.out.println(routePointArrayList.get(i));
-            System.out.println(gpsPointArrayList.get(i));
-            Thread.sleep(500); // 500ms 마다 출력
-        }
         //유림이가 썼던 코드
-        Point gpsPoint = new Point(1.0,2.0);
-        ArrayList<Link> candidateLink = new ArrayList<>();
-        candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
+        Point gpsPoint = new Point(0.0,0.0);
+        /*candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
+        {
             candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
+        }*/
+
+        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
+        System.out.println("\n\nhere\n\n\n");
+        for (int i = 0; i < gpsPointArrayList.size(); i++) {
+            ArrayList<Link> candidateLink = new ArrayList<>();
+            System.out.println(routePointArrayList.get(i));
+            System.out.println(gpsPointArrayList.get(i));
+            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList));
+            System.out.println("candidateLink : "+candidateLink);
+            ArrayList<Point> candidates= new ArrayList<>();
+            for(int j=0;j<candidateLink.size();j++) {
+                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
+            }
+            System.out.println("candidate : "+candidates);
+            //Thread.sleep(500); // 500ms 마다 출력
+        }
     }
     // GPS 포인트 1초에 1개씩 생성하는 함수 : 어차피 여기서만 쓰니까 그냥 Main클래스에 구현했어요~
     private static void GenerateGPSPoint(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
