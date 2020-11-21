@@ -80,7 +80,7 @@ public class Point {
         }
         return RadiusLinkID;
     }//반경 내에 존재하는 link ID구하기
-    //test
+    //testtest
 
     public Double coordDistance(Point a){
         return Math.sqrt(Math.pow(a.getX()-this.getX(),2)+Math.pow(a.getY()-this.getY(),2));
