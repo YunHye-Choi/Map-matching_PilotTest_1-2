@@ -85,4 +85,4 @@ public class Point {
     public Double coordDistance(Point a){
         return Math.sqrt(Math.pow(a.getX()-this.getX(),2)+Math.pow(a.getY()-this.getY(),2));
     }//점과 점 사이의 거리 구하기
-}
+}//test

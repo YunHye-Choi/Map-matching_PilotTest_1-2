@@ -67,6 +67,6 @@ public class Link {
 
     public void setInvolvingPointList(ArrayList<Point> involvingPointList) {
         this.involvingPointList = involvingPointList;
-    }
+    }//유림 혹시 몰라 push
 
 }

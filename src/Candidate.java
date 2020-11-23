@@ -14,4 +14,5 @@ public class Candidate {
     public Link getInvolvedLink(){
         return involvedLink;
     }
+    //유림 혹시 몰라 push
 }
