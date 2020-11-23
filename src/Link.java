@@ -106,4 +106,22 @@ public class Link {
         return resultLinks;
     }
 
+    // 11/20에 만듦: param으로 받은 link와 이 링크가 이웃하는지 여부 출력
+    public boolean isLinkNextTo(RoadNetwork rn, int _linkID) {
+        if (this.linksNeighborOnStartOrEndNode(rn) != null) {
+            for (Link l : this.linksNeighborOnStartOrEndNode(rn)) {
+                if (l.getLinkID() == _linkID)
+                    return true;
+            }
+        } return false;
+    }
+    // 11/20에 만듦: 이 링크와 이웃한 링크 개수 출력
+    public int nextLinksNum(RoadNetwork rn) {
+        int n = 0;
+        if (this.linksNeighborOnStartOrEndNode(rn) != null) {
+            for (Link l : this.linksNeighborOnStartOrEndNode(rn)) {
+                n++;
+            }
+        } return n;
+    }
 }

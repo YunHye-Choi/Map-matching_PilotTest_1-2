@@ -30,6 +30,7 @@ public class Main {
             }
         }
         // Adjacency List 구조 바탕으로 출력 test
+        /*
         for (AdjacentNode adjacentNode : heads) {
             System.out.print( " [ " + adjacentNode.getNode().getNodeID() + " ] ");
             while (adjacentNode.getNextNode() != null) {
@@ -37,7 +38,8 @@ public class Main {
                 adjacentNode = adjacentNode.getNextNode();
             }
             System.out.println();
-        }
+        }*/
+
         // GPS points와 routePoints를 저장할 ArrayList생성
         ArrayList<GPSPoint> gpsPointArrayList = new ArrayList<>();
         ArrayList<Point> routePointArrayList; // 실제 경로의 points!
@@ -59,13 +61,59 @@ public class Main {
             System.out.println(gpsPointArrayList.get(i));
         }
 
+        // Transition probability 구현
+        int n = roadNetwork.getLinksSize();
+        double [][] tp_matrix = new double[n][n];
+        for (int i = 0; i < n;i++) {
+            // 여기에서 link[i]가 몇개의 link와 맞닿아있는지 int 변수 선언해서 저장
+            int m = roadNetwork.getLink(i).nextLinksNum(roadNetwork);
+            // 알고리즘대로 tp 지정
+            for (int j = 0; j < n; j++) {
+                if (i == j) tp_matrix[i][j] = 1.0;
+                else if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, j))
+                    tp_matrix[i][j] = 1.0/m;
+                else tp_matrix[i][j] = 0.0;
+            }
+        }
+
+        // i - j - k로 맞닿아있을떄 tp[i][k] = tp[i][j] * tp[j][k]
+        for (int i = 0; i < n;i++) {
+            for (int j = 0; j < n; j++) {
+                for (int k = 0; k< n; k++) {
+                    if (i == k) continue;
+                    if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, k)) continue;
+                    if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, j) && roadNetwork.getLink(j).isLinkNextTo(roadNetwork, k))
+                        tp_matrix[i][k] = tp_matrix[i][j] * tp_matrix[j][k];
+                }
+            }
+        }
+
+        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
+        System.out.println("\n\nhere\n\n\n");
+        for (int i = 0; i < gpsPointArrayList.size(); i++) {
+            ArrayList<Link> candidateLink = new ArrayList<>();
+            System.out.println(routePointArrayList.get(i));
+            System.out.println(gpsPointArrayList.get(i));
+            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList));
+            System.out.println("candidateLink : "+candidateLink);
+            ArrayList<Point> candidates= new ArrayList<>();
+            for(int j=0;j<candidateLink.size();j++) {
+                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
+            }
+            System.out.println("candidate : "+candidates);
+        }
+
         // 유림이가 썼던 코드 그대로 둘게..유네확인~
-        Point gpsPoint = new Point(1.0,2.0);
+
+        Point gpsPoint = new Point(0.0,0.0);/*
         ArrayList<Link> candidateLink;
         candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++) //모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
             candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
+        */
+
+
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){

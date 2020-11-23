@@ -82,5 +82,10 @@ public class RoadNetwork {
 //gmdma
         } return routePoints;
     }
+
+    // link개수 출력하기
+    int getLinksSize () {
+        return linkArrayList.size();
+    }
 }
 

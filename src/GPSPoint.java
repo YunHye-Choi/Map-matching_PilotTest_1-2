@@ -16,4 +16,8 @@ public class GPSPoint {
     public String toString() {
         return "[" + timeStamp+ "] " + coordinate;
     }
+
+    public Point getPoint() {
+        return coordinate;
+    }
 }
