@@ -1,142 +1,78 @@
+import com.sun.deploy.util.SyncAccess;
+import javafx.util.Pair;
+
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("===== [YSY] Map-matching PilotTest 1-2 ====");
-        FileIO fileIO = new FileIO();
-
-        // 도로네트워크
+        System.out.println("===== [YSY] Map-matching PilotTest 1-2 =====");
+        int testNo = 2; // 여기만 바꿔주면 됨 (1-세정, 2-유네, 3-유림)
+        FileIO fileIO = new FileIO(testNo);
+        // 파일에서 읽어와 도로네트워크 생성
         RoadNetwork roadNetwork = fileIO.generateRoadNetwork();
 
-        // GPS points와 routePoints
+        // Link와 Node를 바탕으로 Adjacent List 구축
+        ArrayList<AdjacentNode> heads = new ArrayList<>();
+        for(int i=0;i<roadNetwork.nodeArrayList.size();i++){
+            AdjacentNode headNode = new AdjacentNode(roadNetwork.nodeArrayList.get(i));
+            heads.add(headNode);
+
+            List<Pair<Link,Integer>> adjacentLink = roadNetwork.getLink1(headNode.getNode().getNodeID());
+            if(adjacentLink.size()==0) continue;
+            AdjacentNode ptr = headNode;
+            for(int j=0;j<adjacentLink.size();j++){
+                AdjacentNode addNode = new AdjacentNode(roadNetwork.getNode(adjacentLink.get(j).getValue()),adjacentLink.get(j).getKey());
+                ptr.setNextNode(addNode);
+                ptr = ptr.getNextNode();
+            }
+        }
+        // Adjacency List 구조 바탕으로 출력 test
+        for (AdjacentNode adjacentNode : heads) {
+            System.out.print( " [ " + adjacentNode.getNode().getNodeID() + " ] ");
+            while (adjacentNode.getNextNode() != null) {
+                System.out.print(adjacentNode);
+                adjacentNode = adjacentNode.getNextNode();
+            }
+            System.out.println();
+        }
+        // GPS points와 routePoints를 저장할 ArrayList생성
         ArrayList<GPSPoint> gpsPointArrayList = new ArrayList<>();
-        ArrayList<Point> routePointArrayList = new ArrayList<>(); // 실제 경로의 points!
+        ArrayList<Point> routePointArrayList; // 실제 경로의 points!
 
-        GenerateGPSPoint(roadNetwork.linkArrayList, gpsPointArrayList, routePointArrayList);
+        // test 번호에 맞는 routePoints생성
+        routePointArrayList = roadNetwork.routePoints(testNo);
 
-        //유림이가 썼던 코드
-        Point gpsPoint = new Point(0.0,0.0);
-        /*candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
-        ArrayList<Point> candidate = new ArrayList<>();
-        for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
-        {
-            candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
-        }*/
+        // GPSPoints 생성 -> 이전 test1-1에서 generateGPSPoints메서드 삭제함
+        int timestamp = 0;
+        for (Point point : routePointArrayList) {
+            GPSPoint gpsPoint = new GPSPoint(timestamp, point);
+            gpsPointArrayList.add(gpsPoint);
+            timestamp++;
+        }
 
-        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
-        System.out.println("\n\nhere\n\n\n");
+        // origin route points와 랜덤하게 생성된 GPS points 출력하기
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
-            ArrayList<Link> candidateLink = new ArrayList<>();
             System.out.println(routePointArrayList.get(i));
             System.out.println(gpsPointArrayList.get(i));
-            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList));
-            System.out.println("candidateLink : "+candidateLink);
-            ArrayList<Point> candidates= new ArrayList<>();
-            for(int j=0;j<candidateLink.size();j++) {
-                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
-            }
-            System.out.println("candidate : "+candidates);
-            //Thread.sleep(500); // 500ms 마다 출력
         }
+
+        // 유림이가 썼던 코드 그대로 둘게..유네확인~
+        Point gpsPoint = new Point(1.0,2.0);
+        ArrayList<Link> candidateLink;
+        candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
+        ArrayList<Point> candidate = new ArrayList<>();
+        for(int i=0;i<candidateLink.size();i++) //모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
+            candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
     }
-    // GPS 포인트 1초에 1개씩 생성하는 함수 : 어차피 여기서만 쓰니까 그냥 Main클래스에 구현했어요~
-    private static void GenerateGPSPoint(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
-        /////////// 과연 1-2에서도 성공할것인가 //////////////////// 이 이하로 아직손도안댐~~~~~~~~~~
 
-        System.out.println("======GPS Data=======");
-        boolean isThereEdgeLink;
-        Link startLink = new Link(0, 0, 0, 0.0);
-        ArrayList<Integer> overlappedNodeIDs = new ArrayList<>();
-        ArrayList<Integer> nodeIDs = new ArrayList<>();
-        ArrayList<Integer> linkIDs = new ArrayList<>();
-        // nodeID 중복허용 모두 저장
-        for (Link link : linkArrayList) {
-            overlappedNodeIDs.add(link.getStartNodeID());
-            overlappedNodeIDs.add(link.getEndNodeID());
-        }
-        // 중복되지 않는 노드만 저장
-        for (int index1 = 0; index1 < overlappedNodeIDs.size(); index1++) {
-            for (int index2 = 0; index2 < overlappedNodeIDs.size(); index2++) {
-                if (index1 == index2) continue;
-                else if (overlappedNodeIDs.get(index1) == overlappedNodeIDs.get(index2)) {
-                    break;
-                }
-                if (index2 == overlappedNodeIDs.size() - 1) {
-                    nodeIDs.add(overlappedNodeIDs.get(index1));
-                }
-            }
-        }
-
-        // 만약 노드 중 end이기만 하거나 start이기만 한 node (끝 노드) 가 있다면
-        // nodeID가 작은 node를 end/start로 가지는 link가 시작링크
-        // end이기만 하거나 start이기만 한 link 가 없다면 0을 startNodeID로 갖는 link가 시작링크
-        int minNodeID = 0;
-        if (nodeIDs.size() == 2) { // 끝노드 2개인 경우
-            minNodeID = (nodeIDs.get(0) < nodeIDs.get(1)) ? nodeIDs.get(0) : nodeIDs.get(1);
-        } else if (nodeIDs.size() == 1) { // 끝노드 1개인 경우
-            minNodeID = nodeIDs.get(0);
-        }
-        for (Link link : linkArrayList) {
-            if (link.getStartNodeID() == minNodeID || link.getEndNodeID() == minNodeID) {
-                startLink = link;
-                break;
-            }
-        }
-        // currNodeID를 startNodeID 혹은 endNodeID 로 가지는 Link 중복체크하면서 하나씩 불러오기 (반복)
-        int count = 0;
-        int currNodeID = startLink.getEndNodeID();
-        int timeStamp = 0; // 추후 String으로 변경
-        linkIDs.add(startLink.getLinkID());
-        while (count < linkArrayList.size()) {
-            if (count == linkArrayList.size()) break;
-
-            // startLink의 involvingPoints는 무조건 이용!
-            if (count == 0) {
-                ArrayList<Point> involvingPoints = startLink.getInvolvingPointList();
-                for (Point point : involvingPoints) {
-                    routePointArrayList.add(point); // routePointArrayList에 추가
-                    GPSPoint gpsPoint = new GPSPoint(timeStamp, point); // GPS 포인트 생성!
-                    gpsPointArrayList.add(gpsPoint); // gpsPointArrayList에 추가
-                    timeStamp++;
-                }
-            }
-            for (Link link : linkArrayList) {
-                // currNodeID를 startNodeID로 가지는 Link 불러오기
-                if (link.getStartNodeID() == currNodeID && !linkIDs.contains(link.getLinkID())) {
-                    // GPS 생성을 위한 link의 involvingPoints출력
-                    linkIDs.add(link.getLinkID()); // 중복검색 방지
-                    ArrayList<Point> involvingPoints = link.getInvolvingPointList();
-                    for (Point point : involvingPoints) {
-                        routePointArrayList.add(point); // routePointArrayList에 추가
-                        GPSPoint gpsPoint = new GPSPoint(timeStamp, point); // GPS 포인트 생성!
-                        gpsPointArrayList.add(gpsPoint); // gpsPointArrayList에 추가
-                        timeStamp++;
-                    }
-                    currNodeID = link.getEndNodeID();
-                }
-                // currNodeID를 endNodeID로 가지는 Link 불러오기
-                else if (link.getEndNodeID() == currNodeID && !linkIDs.contains(link.getLinkID())) {
-                    // GPS 생성을 위한 link의 involvingPoints출력
-                    linkIDs.add(link.getLinkID()); // 중복검색 방지
-                    ArrayList<Point> involvingPoints = link.getInvolvingPointList();
-                    for (int i = involvingPoints.size() - 1; i >= 0; i--) {
-                        routePointArrayList.add(involvingPoints.get(i)); // routePointArrayList에 추가
-                        GPSPoint gpsPoint = new GPSPoint(timeStamp, involvingPoints.get(i)); // GPS 포인트 생성!
-                        gpsPointArrayList.add(gpsPoint); // gpsPointArrayList에 추가
-                        timeStamp++;
-                    }
-                    // 다음 currNode지정: start인 경우에는 그 링크의 endNode를, 반대의 경우에는 startNode를 currNode로 지정
-                    currNodeID = link.getStartNodeID();
-                }
-            }
-            count++;
-        }
-    }public static Double coordDistanceofPoints(Point a, Point b){
+    public static Double coordDistanceofPoints(Point a, Point b){
         return Math.sqrt(Math.pow(a.getX()-b.getX(),2)+Math.pow(a.getY()-b.getY(),2));
     }//유클리드 거리 구하기
 
-    // 이 아이를 어디 맵매칭클래스 같은거 만들어거 거기에 넣으면 좋지 않을까?하는 생각이어요~
+    // 이 아이를 어디 맵매칭클래스 같은거 만들어서 거기에 넣으면 좋지 않을까?하는 생각이어요~
     public static ArrayList<Point> findRadiusPoint(Point center, Link link, Integer Radius){//Link 안, 반경 내 involving node들만 반환
         ArrayList<Point> allInvolvingPoint =link.getInvolvingPointList();
         ArrayList<Point> resultPoint = new ArrayList<>();
@@ -147,4 +83,3 @@ public class Main {
         return resultPoint;
     }//유림 혹시 몰라 push
 }
-

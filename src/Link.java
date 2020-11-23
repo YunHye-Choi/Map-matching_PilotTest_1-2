@@ -8,6 +8,7 @@ public class Link {
     // Link가 포함하고 있는 node List
     private ArrayList<Point> involvingPointList = new ArrayList<>();
 
+    //////생성자, getter, setter, toString//////
     // int로 ID 파라미터 받음
     public Link (int linkID, int startNodeID, int endNodeID, Double weight){
         this.linkID = linkID;
@@ -67,6 +68,42 @@ public class Link {
 
     public void setInvolvingPointList(ArrayList<Point> involvingPointList) {
         this.involvingPointList = involvingPointList;
-    }//유림 혹시 몰라 push
+    }
+    //////////////////////////////////////
+
+    //  [VERIFIED] 이 링크의 startNode(이 아이)와 이웃하는(이 아이를 startNode혹은 endNode로 가지는) links 출력
+    public ArrayList<Link> linksNeighborOnStartNode (RoadNetwork roadNetwork) {
+        ArrayList<Link> result = roadNetwork.getNode(startNodeID).includingLinks(roadNetwork.linkArrayList);
+        for (int i=0;i<result.size();i++) {
+            Link l = result.get(i);
+            if (l.getLinkID() == linkID) {
+                result.remove(l);
+                i--;
+            }
+        }
+        return result;
+    }
+
+    //  [VERIFIED] 이 링크의 endNode(이 아이)와 이웃하는(이 아이를 startNode혹은 endNode로 가지는) links 출력
+    public ArrayList<Link> linksNeighborOnEndNode (RoadNetwork roadNetwork) {
+        ArrayList<Link> result =  roadNetwork.getNode(endNodeID).includingLinks(roadNetwork.linkArrayList);
+        for (int i=0;i<result.size();i++) {
+            Link l = result.get(i);
+            if (l.getLinkID() == linkID) {
+                result.remove(l);
+                i--;
+            }
+        }
+        return result;
+    }
+
+    //  [VERIFIED] 이 링크의 startNode endNode(이 아이)와 이웃하는(이 아이를 startNode혹은 endNode로 가지는) links 출력
+    public ArrayList<Link> linksNeighborOnStartOrEndNode (RoadNetwork roadNetwork) {
+        ArrayList<Link> resultLinks = new ArrayList<>();
+        resultLinks.addAll(linksNeighborOnStartNode(roadNetwork));
+        resultLinks.addAll(linksNeighborOnEndNode(roadNetwork));
+
+        return resultLinks;
+    }
 
 }
