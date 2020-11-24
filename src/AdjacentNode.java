@@ -39,4 +39,8 @@ public class AdjacentNode {
                 + "weight: "+ getNextNode().getLink().getWeight() + " | ";
     }
 
+    public Link getAdjacentLink() {
+        return adjacentLink;
+    }
+
 }

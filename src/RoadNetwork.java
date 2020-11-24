@@ -24,6 +24,15 @@ public class RoadNetwork {
         return new Node(-1, new Point((double)-99,(double)-99));
     }
 
+    public Node getNode1 (Point nodePoint){
+        for(Node currNode : nodeArrayList){
+            if(currNode.getCoordinate()==nodePoint)
+                return currNode;
+        }
+        // 탐색에 실패한 경우 nodeId가 -1인 Node반환
+        return new Node(-1, new Point((double)-99,(double)-99));
+    }
+
     // _linkID를 linkID로 가지는 link반환
     public Link getLink (int _linkID) {
         for (Link currLink : linkArrayList) {
@@ -74,7 +83,7 @@ public class RoadNetwork {
             }
         } else if (testNo == 2) { // 유네 데이터
             // node0 에서 node 55로 가는 경로
-            int[] routeNodes = {0, 6, 12, 25, 26, 27, 33, 34};
+            int[] routeNodes = {0,1, 6, 12, 25, 26, 27, 33, 34};
             for (int i=0; i<routeNodes.length-1; i++) {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }

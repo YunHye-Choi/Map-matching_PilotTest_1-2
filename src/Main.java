@@ -30,6 +30,7 @@ public class Main {
             }
         }
         // Adjacency List 구조 바탕으로 출력 test
+        /*
         for (AdjacentNode adjacentNode : heads) {
             System.out.print( " [ " + adjacentNode.getNode().getNodeID() + " ] ");
             while (adjacentNode.getNextNode() != null) {
@@ -37,10 +38,12 @@ public class Main {
                 adjacentNode = adjacentNode.getNextNode();
             }
             System.out.println();
-        }
+        }*/
+
         // GPS points와 routePoints를 저장할 ArrayList생성
         ArrayList<GPSPoint> gpsPointArrayList = new ArrayList<>();
         ArrayList<Point> routePointArrayList; // 실제 경로의 points!
+        ArrayList<Candidate> matchingPointArrayList= new ArrayList<>();
 
         // test 번호에 맞는 routePoints생성
         routePointArrayList = roadNetwork.routePoints(testNo);
@@ -59,13 +62,37 @@ public class Main {
             System.out.println(gpsPointArrayList.get(i));
         }
 
+        Point firstPoint = new Point(0.0,0.0);
+        Candidate first = new Candidate(firstPoint,roadNetwork.getLink(0));
+        matchingPointArrayList.add(first);
+        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
+        System.out.println("\n\nhere\n\n\n");
+        //Candidate first = new Candidate(routePointArrayList.get(0),)
+        //matchingPointArrayList.add()
+        for (int i = 0; i < gpsPointArrayList.size(); i++) {
+            ArrayList<Link> candidateLink = new ArrayList<>();
+            System.out.println(routePointArrayList.get(i));
+            System.out.println(gpsPointArrayList.get(i));
+            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList));
+            //System.out.println("candidateLink : "+candidateLink);
+            ArrayList<Candidate> candidates= new ArrayList<>();
+            for(int j=0;j<candidateLink.size();j++) {
+                candidates.addAll(findRadiusCandidate(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
+            }
+            calculationTP(candidates,matchingPointArrayList.get(i),roadNetwork,heads);
+
+            //System.out.println("candidate : "+candidates);
+        }
+
         // 유림이가 썼던 코드 그대로 둘게..유네확인~
-        Point gpsPoint = new Point(1.0,2.0);
+
+        Point gpsPoint = new Point(0.0,0.0);/*
         ArrayList<Link> candidateLink;
         candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++) //모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
             candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
+        */
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){
@@ -81,5 +108,57 @@ public class Main {
                 resultPoint.add(allInvolvingPoint.get(i));
         }
         return resultPoint;
-    }//유림 혹시 몰라 push
+    }
+
+    public static ArrayList<Candidate> findRadiusCandidate(Point center, Link link, Integer Radius){
+        ArrayList<Point> allInvolvingPoint = link.getInvolvingPointList();
+        ArrayList <Candidate> resultCandidate= new ArrayList<>();
+        for(int i=0;i<allInvolvingPoint.size();i++){
+            if(coordDistanceofPoints(center,allInvolvingPoint.get(i))<=Radius) {
+                Candidate candidate = new Candidate(allInvolvingPoint.get(i),link);
+                resultCandidate.add(candidate);
+            }
+        }
+        return resultCandidate;
+    }
+    public static void calculationTP(ArrayList<Candidate> cand,Candidate lastMatch,RoadNetwork roadNetwork,ArrayList<AdjacentNode> heads){
+        Link mainLink = lastMatch.getInvolvedLink();
+        ArrayList<Link> secondLink = AdjacentLink(mainLink,roadNetwork,heads);
+        ArrayList<Link> thirdLink = new ArrayList<>();
+        for(int i=0;i<secondLink.size();i++){
+            thirdLink.addAll(AdjacentLink(secondLink.get(i),roadNetwork,heads));
+        }
+        for(int i=0;i<cand.size();i++){
+            if(cand.get(i).getInvolvedLink()==mainLink) cand.get(i).setTp(3/5);
+            else{
+                for(int j=0;j<secondLink.size();j++){
+                    if(secondLink.get(j)==cand.get(i).getInvolvedLink()) cand.get(i).setTp(2/5);
+                }
+                for(int j=0;j<thirdLink.size();j++){
+                    if(thirdLink.get(j)==cand.get(i).getInvolvedLink()) cand.get(i).setTp(1/5);
+                }
+            }
+        }
+    }
+
+    public static ArrayList<Link> AdjacentLink(Link mainLink,RoadNetwork roadNetwork,ArrayList<AdjacentNode> heads){
+        int startNode=mainLink.getStartNodeID();
+        int endNode = mainLink.getEndNodeID();
+        ArrayList<Link> secondLink = new ArrayList<>();
+        //ArrayList<Node> startAdjacentNode = new ArrayList<>();
+        //ArrayList<Node> endAdjacentNode = new ArrayList<>();
+        AdjacentNode pointer = heads.get(roadNetwork.nodeArrayList.get(startNode).getNodeID()).getNextNode();
+        while(true){
+            if(pointer==null) break;
+            secondLink.add(roadNetwork.getLink(pointer.getNode().getNodeID(),startNode));
+            pointer=pointer.getNextNode();
+        }
+        pointer = heads.get(roadNetwork.nodeArrayList.get(endNode).getNodeID()).getNextNode();
+        while(true){
+            if(pointer==null) break;
+            secondLink.add(roadNetwork.getLink(pointer.getNode().getNodeID(),endNode));
+            pointer=pointer.getNextNode();
+        }
+        return secondLink;
+    }
 }
