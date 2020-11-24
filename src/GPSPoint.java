@@ -19,5 +19,8 @@ public class GPSPoint {
     public Point getPoint() {
         return coordinate;
     }
-    //유림 혹시 몰라 push
+
+    public Double getX(){return coordinate.getX();}
+    public Double getY(){return coordinate.getY();}
+
 }

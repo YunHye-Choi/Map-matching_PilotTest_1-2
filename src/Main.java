@@ -43,7 +43,6 @@ public class Main {
         // GPS points와 routePoints를 저장할 ArrayList생성
         ArrayList<GPSPoint> gpsPointArrayList = new ArrayList<>();
         ArrayList<Point> routePointArrayList; // 실제 경로의 points!
-        ArrayList<Candidate> matchingPointArrayList= new ArrayList<>();
 
         // test 번호에 맞는 routePoints생성
         routePointArrayList = roadNetwork.routePoints(testNo);
@@ -56,19 +55,24 @@ public class Main {
             timestamp++;
         }
 
+<<<<<<<<< Temporary merge branch 1
         // origin route points와 랜덤하게 생성된 GPS points 출력하기
-        for (int i = 0; i < gpsPointArrayList.size(); i++) {
-            System.out.println(routePointArrayList.get(i));
-            System.out.println(gpsPointArrayList.get(i));
-        }
+=========
+        //유림이가 썼던 코드
+        Point gpsPoint = new Point(0.0,0.0);
+        /*candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
+        ArrayList<Point> candidate = new ArrayList<>();
+        for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
+        {
+            candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
+        }*/
 
         Point firstPoint = new Point(0.0,0.0);
         Candidate first = new Candidate(firstPoint,roadNetwork.getLink(0));
         matchingPointArrayList.add(first);
         // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
         System.out.println("\n\nhere\n\n\n");
-        //Candidate first = new Candidate(routePointArrayList.get(0),)
-        //matchingPointArrayList.add()
+>>>>>>>>> Temporary merge branch 2
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
             ArrayList<Link> candidateLink = new ArrayList<>();
             System.out.println(routePointArrayList.get(i));
@@ -85,14 +89,58 @@ public class Main {
         }
 
         // 유림이가 썼던 코드 그대로 둘게..유네확인~
-
-        Point gpsPoint = new Point(0.0,0.0);/*
+        Point gpsPoint = new Point(1.0,2.0);
         ArrayList<Link> candidateLink;
         candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++) //모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
             candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
-        */
+        }*/
+
+        for(int i=0; i<gpsPointArrayList.size(); i++){
+            emission.Emission_Median(gpsPointArrayList.get(i), routePointArrayList.get(i));
+            if(i>0){
+                transition.Transition_Median(gpsPointArrayList.get(i-1), gpsPointArrayList.get(i),routePointArrayList.get(i-1), routePointArrayList.get(i));
+            }//매칭된 point로 해야하나.. 실제 point로 해야하나.. 의문?
+            //중앙값 저장
+        }
+
+
+
+        // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
+        System.out.println("\n\nhere\n\n\n");
+        for (int i = 0; i < gpsPointArrayList.size(); i++) {
+            ArrayList<Link> candidateLink = new ArrayList<>();
+            System.out.println(routePointArrayList.get(i));
+            System.out.println(gpsPointArrayList.get(i));
+            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList, roadNetwork.nodeArrayList));
+            System.out.println("candidateLink : " + candidateLink);
+            ArrayList<Point> candidates = new ArrayList<>();
+            for (int j = 0; j < candidateLink.size(); j++) {
+                candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
+            }
+            System.out.println("candidate : " + candidates);
+            //Thread.sleep(500); // 500ms 마다 출력
+
+            /////////matching/////////////
+            matching_success.add(Matching(candidates, gpsPointArrayList, routePointArrayList, matching_success, i+1)); //size 1부터 시작
+            System.out.print("matching: ");
+            System.out.println(matching_success.get(i)); //매칭된 point 출력
+            System.out.println();
+
+        }
+
+        System.out.println("silver");
+        for(int i =0; i< routePointArrayList.size(); i++){
+            System.out.println(routePointArrayList.get(i));
+        }
+
+
+        System.out.println("here");
+        for(int i =0; i< matching_success.size(); i++){
+            System.out.println(matching_success.get(i));
+        }
+
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){
@@ -140,6 +188,28 @@ public class Main {
             }
         }
     }
+
+    ////////////////////세정 추가 probability////////////////////
+
+    public static Point Matching(ArrayList<Point> candidates, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList, ArrayList<Point> matching_success, int size) {
+        Point matching = new Point(0.0, 0.0);
+
+        double maximum_tpep = 0;
+
+        if(size==1 || size==2){
+            double min_ep = 0;
+            for(int i=0; i< candidates.size(); i++){
+                if(i==0) {
+                    min_ep = emission.Emission_pro(gpsPointArrayList.get(size - 1), candidates.get(i), size); //gpspoint
+                    matching = candidates.get(i);
+                }
+                else if(min_ep > emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size) ) {
+                    min_ep = emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size);
+                    matching = candidates.get(i);
+                }
+            }
+            return matching;
+        }
 
     public static ArrayList<Link> AdjacentLink(Link mainLink,RoadNetwork roadNetwork,ArrayList<AdjacentNode> heads){
         int startNode=mainLink.getStartNodeID();

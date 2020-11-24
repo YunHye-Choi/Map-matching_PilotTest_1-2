@@ -20,14 +20,14 @@ public class FileIO {
         FileReader fileReader1 = new FileReader(file1);
         //BufferedReader 클래스 이용하여 파일 읽어오기
         BufferedReader bufferedReader1 = new BufferedReader(fileReader1);
-        //System.out.println("======== Node 정보 =======");
+        System.out.println("======== Node 정보 =======");
         while (bufferedReader1.ready()) {
             String line = bufferedReader1.readLine();
             String[] lineArray = line.split("\t");
             Point coordinate = new Point(lineArray[1], lineArray[2]);
             Node node = new Node(lineArray[0], coordinate); // 노드생성
             roadNetwork.nodeArrayList.add(node); // nodeArrayList에 생성한 노드 추가
-            //System.out.println(node);
+            System.out.println(node);
         }
         // close the bufferedReader
         bufferedReader1.close();
@@ -39,7 +39,7 @@ public class FileIO {
         FileReader fileReader2 = new FileReader(file2);
         //BufferedReader 클래스 이용하여 파일 읽어오기
         BufferedReader bufferedReader2 = new BufferedReader(fileReader2);
-        //System.out.println("======== Link 정보 =======");
+        System.out.println("======== Link 정보 =======");
         while (bufferedReader2.ready()) {
             String line = bufferedReader2.readLine();
             String[] lineArray = line.split("\t");
@@ -66,12 +66,13 @@ public class FileIO {
             ArrayList<Point> involvingPointList = new ArrayList<>();
 
             // link 기울기가 0인 경우 : ㅡ
-            if (xs != xe && ys == ye) {
+            if (ys == ye) {
                 // y값이 정수인 경우만 involvingPoint에 추가 (int의 ++연산)
                 for (int x_cord = (int) xs; x_cord <= (int) xe; x_cord++) {
                     // xs가 5.1등과 같이 (int)5.1 즉 5보다 큰 경우 (int)5.1 즉 5는 involvingPoint가 될수없음
                     // 5.0등인 case는 else이하 로직을 수행할 수 있도록 함
                     if (x_cord < xs) continue;
+
                         // involvingPointList에 Point 추가
                     else {
                         involvingPointList.add(new Point((double) x_cord, ys));
@@ -80,7 +81,7 @@ public class FileIO {
 
             }
             // link 기울기가 무한인 경우 : |
-            else if (xs == xe && ys != ye) {
+            else if (xs == xe) {
                 // y값이 정수인 경우만 involvingPoint에 추가 (int의 ++연산)
                 for (int y_cord = (int) ys; y_cord <= (int) ye; y_cord++) {
                     // ys가 5.1등과 같이 (int)5.1 즉 5보다 큰 경우 (int)5.1 즉 5는 involvingPoint가 될수없음
@@ -113,10 +114,16 @@ public class FileIO {
             }
             link.setInvolvingPointList(involvingPointList);
 
+            /* 아직 필요없어보여서 안짬 - 필요시 추가 예정
+            // 기울기가 무한아닌 양수인 경우 : /
+
+            // 기울기가 음수인 경우 : \
+            */
+
             roadNetwork.linkArrayList.add(link); // linkArrayList에 생성한 노드 추가
-            //System.out.println(link);
-            //System.out.print("involving points:");
-           // System.out.println(link.getInvolvingPointList());
+            System.out.println(link);
+            System.out.print("involving points:");
+            System.out.println(link.getInvolvingPointList());
         }
         // close the bufferedReader
         bufferedReader2.close();
