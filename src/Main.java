@@ -2,9 +2,14 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
+    private static Emission emission = new Emission();
+    private static Transition transition = new Transition();
+
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("===== [YSY] Map-matching PilotTest 1-2 ====");
         FileIO fileIO = new FileIO();
+
+        ArrayList<Point> matching_success = new ArrayList<>();
 
         // 도로네트워크
         RoadNetwork roadNetwork = fileIO.generateRoadNetwork();
@@ -24,6 +29,16 @@ public class Main {
             candidate.addAll(findRadiusPoint(gpsPoint,candidateLink.get(i),2));
         }*/
 
+        for(int i=0; i<gpsPointArrayList.size(); i++){
+            emission.Emission_Median(gpsPointArrayList.get(i), routePointArrayList.get(i));
+            if(i>0){
+                transition.Transition_Median(gpsPointArrayList.get(i-1), gpsPointArrayList.get(i),routePointArrayList.get(i-1), routePointArrayList.get(i));
+            }//매칭된 point로 해야하나.. 실제 point로 해야하나.. 의문?
+            //중앙값 저장
+        }
+
+
+
         // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
         System.out.println("\n\nhere\n\n\n");
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
@@ -38,7 +53,26 @@ public class Main {
             }
             System.out.println("candidate : " + candidates);
             //Thread.sleep(500); // 500ms 마다 출력
+
+            /////////matching/////////////
+            matching_success.add(Matching(candidates, gpsPointArrayList, routePointArrayList, matching_success, i+1)); //size 1부터 시작
+            System.out.print("matching: ");
+            System.out.println(matching_success.get(i)); //매칭된 point 출력
+            System.out.println();
+
         }
+
+        System.out.println("silver");
+        for(int i =0; i< routePointArrayList.size(); i++){
+            System.out.println(routePointArrayList.get(i));
+        }
+
+
+        System.out.println("here");
+        for(int i =0; i< matching_success.size(); i++){
+            System.out.println(matching_success.get(i));
+        }
+
     }
 
     // GPS 포인트 1초에 1개씩 생성하는 함수 : 어차피 여기서만 쓰니까 그냥 Main클래스에 구현했어요~
@@ -152,15 +186,40 @@ public class Main {
 
     ////////////////////세정 추가 probability////////////////////
 
-    Emission emission = new Emission();
-    Transition transition = new Transition();
-
     public static Point Matching(ArrayList<Point> candidates, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList, ArrayList<Point> matching_success, int size) {
         Point matching = new Point(0.0, 0.0);
 
+        double maximum_tpep = 0;
+
+        if(size==1 || size==2){
+            double min_ep = 0;
+            for(int i=0; i< candidates.size(); i++){
+                if(i==0) {
+                    min_ep = emission.Emission_pro(gpsPointArrayList.get(size - 1), candidates.get(i), size); //gpspoint
+                    matching = candidates.get(i);
+                }
+                else if(min_ep > emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size) ) {
+                    min_ep = emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size);
+                    matching = candidates.get(i);
+                }
+            }
+            return matching;
+        }
+
+        maximum_tpep=0;
+        for(int i =0; i< candidates.size(); i++){
+            double tpep=0;
+            tpep = (12 * emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size)) *
+                    (8*transition.Transition_pro(gpsPointArrayList.get(size-2), gpsPointArrayList.get(size-1), routePointArrayList.get(size-2), candidates.get(i)));
+            //System.out.print("tpep : ");
+            //System.out.println(tpep);
+            if(maximum_tpep < tpep){
+                maximum_tpep = tpep;
+                matching = candidates.get(i);
+            }
+        }
+
         return matching;
     }
-
-
 }
 

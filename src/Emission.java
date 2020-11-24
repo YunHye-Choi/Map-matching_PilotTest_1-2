@@ -31,8 +31,8 @@ public class Emission {
 
         ep = Math.exp(Math.pow(Math.abs(ep_distance) / sigma, 2) * (-0.5)) / (Math.sqrt(2 * Math.PI) * sigma);
 
-        System.out.println(candidate);
-        System.out.println("ep : "+ ep);
+        //System.out.println(candidate);
+        //System.out.println("ep : "+ ep);
         return ep;
 
     } //GPS와 후보의 거리 구하기, 중앙값 배열에 저장

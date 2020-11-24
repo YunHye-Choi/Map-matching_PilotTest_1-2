@@ -30,17 +30,17 @@ public class Transition {
 
         //tp_gps_distance -> tp_gps_test_distance 변경해봄 // 달라지는것이 많이 없음
         dt = Math.abs(tp_gps_test_distance-tp_route_distance); //gps와 경로 거리 차이 절대값
-        System.out.println("dt: "+dt);
+        //System.out.println("dt: "+dt);
 
         double tp=0;
         double beta=0;
 
         beta = transition_median.get(transition_median.size()/2) / (Math.log(2));
-        System.out.println("beta: "+beta);
+        //System.out.println("beta: "+beta);
         tp = Math.exp((dt * (-1)) / beta) / beta;
 
-        System.out.print("tp : ");
-        System.out.println(tp);
+        //System.out.print("tp : ");
+        //System.out.println(tp);
         return tp;
     }
 

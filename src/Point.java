@@ -19,7 +19,7 @@ public class Point {
 
     // 출력~
     public String toString() {
-        return "(" + x + ", "+ y +")";
+        return x + "\t"+ y;
     }
 
     public Double getX() {
