@@ -11,7 +11,7 @@ public class Emission {
     }//유클리드 거리 구하기
 
     //emission probability 구하는 함수
-    public static double Emission_pro(GPSPoint gps, Point candidate, int size) {
+    public double Emission_pro(GPSPoint gps, Point candidate, int size) {
         double ep_distance = 0;
 
         Point gpspoint = new Point(0.0, 0.0);
@@ -38,7 +38,7 @@ public class Emission {
     } //GPS와 후보의 거리 구하기, 중앙값 배열에 저장
 
     //median 저장하는 함수
-    public static void Emission_Median(GPSPoint gps, Point matching){
+    public void Emission_Median(GPSPoint gps, Point matching){
         double ep_distance = 0;
 
         Point gpspoint = new Point(0.0, 0.0);

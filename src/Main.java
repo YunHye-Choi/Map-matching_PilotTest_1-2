@@ -16,7 +16,7 @@ public class Main {
         GenerateGPSPoint(roadNetwork.linkArrayList, gpsPointArrayList, routePointArrayList);
 
         //유림이가 썼던 코드
-        Point gpsPoint = new Point(0.0,0.0);
+        Point gpsPoint = new Point(0.0, 0.0);
         /*candidateLink = gpsPoint.findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList);
         ArrayList<Point> candidate = new ArrayList<>();
         for(int i=0;i<candidateLink.size();i++)//모든 candidate Link 순회 하며, involving node들만 모아서 'candidate'에 저장
@@ -30,16 +30,17 @@ public class Main {
             ArrayList<Link> candidateLink = new ArrayList<>();
             System.out.println(routePointArrayList.get(i));
             System.out.println(gpsPointArrayList.get(i));
-            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList,roadNetwork.nodeArrayList));
-            System.out.println("candidateLink : "+candidateLink);
-            ArrayList<Point> candidates= new ArrayList<>();
-            for(int j=0;j<candidateLink.size();j++) {
+            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList, roadNetwork.nodeArrayList));
+            System.out.println("candidateLink : " + candidateLink);
+            ArrayList<Point> candidates = new ArrayList<>();
+            for (int j = 0; j < candidateLink.size(); j++) {
                 candidates.addAll(findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3));
             }
-            System.out.println("candidate : "+candidates);
+            System.out.println("candidate : " + candidates);
             //Thread.sleep(500); // 500ms 마다 출력
         }
     }
+
     // GPS 포인트 1초에 1개씩 생성하는 함수 : 어차피 여기서만 쓰니까 그냥 Main클래스에 구현했어요~
     private static void GenerateGPSPoint(ArrayList<Link> linkArrayList, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList) {
         /////////// 과연 1-2에서도 성공할것인가 //////////////////// 이 이하로 아직손도안댐~~~~~~~~~~
@@ -132,19 +133,34 @@ public class Main {
             }
             count++;
         }
-    }public static Double coordDistanceofPoints(Point a, Point b){
-        return Math.sqrt(Math.pow(a.getX()-b.getX(),2)+Math.pow(a.getY()-b.getY(),2));
+    }
+
+    public static Double coordDistanceofPoints(Point a, Point b) {
+        return Math.sqrt(Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2));
     }//유클리드 거리 구하기
 
     // 이 아이를 어디 맵매칭클래스 같은거 만들어거 거기에 넣으면 좋지 않을까?하는 생각이어요~
-    public static ArrayList<Point> findRadiusPoint(Point center, Link link, Integer Radius){//Link 안, 반경 내 involving node들만 반환
-        ArrayList<Point> allInvolvingPoint =link.getInvolvingPointList();
+    public static ArrayList<Point> findRadiusPoint(Point center, Link link, Integer Radius) {//Link 안, 반경 내 involving node들만 반환
+        ArrayList<Point> allInvolvingPoint = link.getInvolvingPointList();
         ArrayList<Point> resultPoint = new ArrayList<>();
-        for(int i=0;i<allInvolvingPoint.size();i++){
-            if(coordDistanceofPoints(center,allInvolvingPoint.get(i))<=Radius)
+        for (int i = 0; i < allInvolvingPoint.size(); i++) {
+            if (coordDistanceofPoints(center, allInvolvingPoint.get(i)) <= Radius)
                 resultPoint.add(allInvolvingPoint.get(i));
         }
         return resultPoint;
     }
+
+    ////////////////////세정 추가 probability////////////////////
+
+    Emission emission = new Emission();
+    Transition transition = new Transition();
+
+    public static Point Matching(ArrayList<Point> candidates, ArrayList<GPSPoint> gpsPointArrayList, ArrayList<Point> routePointArrayList, ArrayList<Point> matching_success, int size) {
+        Point matching = new Point(0.0, 0.0);
+
+        return matching;
+    }
+
+
 }
 
