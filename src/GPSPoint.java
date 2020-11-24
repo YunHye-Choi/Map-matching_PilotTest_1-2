@@ -20,4 +20,7 @@ public class GPSPoint {
         return coordinate;
     }
 
+    public Double getX(){return coordinate.getX();}
+    public Double getY(){return coordinate.getY();}
+
 }
