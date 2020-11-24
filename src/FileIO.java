@@ -5,8 +5,10 @@ import java.util.ArrayList;
 public class FileIO {
     // 파일이 저장된 path name
     // 세정: 1, 윤혜: 2, 유림: 3
-    String directoryName = "data2"; // 이거 숫자만 변경하면됨!
-
+    String directoryName = "data";
+    public FileIO (int testNo) {
+        directoryName += testNo;
+    }
     RoadNetwork generateRoadNetwork () throws IOException {
 
         RoadNetwork roadNetwork = new RoadNetwork();
@@ -92,7 +94,24 @@ public class FileIO {
                     }
                 }
             }
+            // 기울기가 양수 혹은 음수인 경우 (/,\)
+            else {
+                double slope = (ye-ys)/(xe-xs);
+                double y_intercept = ((xe*ys)-(xs*ye))/(xe-xs);
+                for (int x_cord = (int) xs; x_cord <= (int) xe; x_cord++) {
+                    // xs가 5.1등과 같이 (int)5.1 즉 5보다 큰 경우 (int)5.1 즉 5는 involvingPoint가 될수없음
+                    // 5.0등인 case는 else이하 로직을 수행할 수 있도록 함
+                    if (x_cord < xs) continue;
 
+                    // involvingPointList에 Point 추가
+                    else {
+                        double y = (slope * x_cord) + y_intercept;
+                        if (y % 1.0 == 0.0) {
+                            involvingPointList.add(new Point((double) x_cord, y));
+                        }
+                    }
+                }
+            }
             link.setInvolvingPointList(involvingPointList);
 
             /* 아직 필요없어보여서 안짬 - 필요시 추가 예정
