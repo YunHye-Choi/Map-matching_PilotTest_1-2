@@ -14,4 +14,8 @@ public class Candidate {
     public Link getInvolvedLink(){
         return involvedLink;
     }
+
+    public String toString() {
+        return "Involved link: " + involvedLink + " Point: " + point;
+    }
 }

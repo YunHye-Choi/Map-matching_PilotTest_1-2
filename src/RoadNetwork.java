@@ -74,7 +74,7 @@ public class RoadNetwork {
             }
         } else if (testNo == 2) { // 유네 데이터
             // node0 에서 node 55로 가는 경로
-            int[] routeNodes = {0, 6, 12, 25, 26, 27, 33, 34};
+            int[] routeNodes = {0,1, 6, 12, 25, 26, 27, 33, 34};
             for (int i=0; i<routeNodes.length-1; i++) {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }
