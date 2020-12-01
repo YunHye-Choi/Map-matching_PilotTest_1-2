@@ -68,18 +68,34 @@ public class RoadNetwork {
     public ArrayList<Point> routePoints (int testNo) {
         ArrayList<Point> routePoints = new ArrayList<>();
         if (testNo == 1) { // 세정이 데이터
+            /*
             int[] routeNodes = {0, 1, 9, 10, 11, 19, 28, 36, 44, 45, 46, 47, 55};
+            for (int i=0; i<routeNodes.length-1; i++) {
+                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
+            }*/
+            // 'ㄱ'자형 데이터
+            int[] routeNodes = {0, 2};
             for (int i=0; i<routeNodes.length-1; i++) {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }
         } else if (testNo == 2) { // 유네 데이터
             // node0 에서 node 55로 가는 경로
+            /*
             int[] routeNodes = {0,1, 6, 12, 25, 26, 27, 33, 34};
+            for (int i=0; i<routeNodes.length-1; i++) {
+                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
+            }*/
+            // 'ㅁ'자형 데이터
+            int[] routeNodes = {0, 2, 3};
             for (int i=0; i<routeNodes.length-1; i++) {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }
         } else if (testNo == 3) { // 유림이 데이터
-//gmdma
+            // 'ㄹ'자형 데이터
+            int[] routeNodes = {0, 1, 4, 5};
+            for (int i=0; i<routeNodes.length-1; i++) {
+                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
+            }
         } return routePoints;
     }
 
