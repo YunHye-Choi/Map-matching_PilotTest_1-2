@@ -23,6 +23,7 @@ public class Main {
         // 파일에서 읽어와 도로네트워크 생성
         RoadNetwork roadNetwork = fileIO.generateRoadNetwork();
 
+
         // Link와 Node를 바탕으로 Adjacent List 구축
         ArrayList<AdjacentNode> heads = new ArrayList<>();
         for(int i=0;i<roadNetwork.nodeArrayList.size();i++){
@@ -53,7 +54,7 @@ public class Main {
             gpsPointArrayList.add(gpsPoint);
             timestamp++;
         }
-
+        System.out.println("zzz\n"+gpsPointArrayList.size());
         // origin route points와 랜덤하게 생성된 GPS points 출력하기
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
             System.out.println(routePointArrayList.get(i));
@@ -137,14 +138,14 @@ public class Main {
             }
             matching_success.add(matching);
         }*/
-
-        System.out.println("\n\nhi\n\n");
+        ArrayList<Point[]> subpaths = new ArrayList<>();
+        System.out.println("\n\nhello\n\n");
         // arrOfCandidates를 순회하며 subpath의 마지막 point를 matching_success에 추가하는 loop
         for (int t = wSize-1; t < arrOfCandidates.size(); t++) {
-            Point matching = new Point(0.0, 0.0);
+            Point matching;
             double maximum_tpep = 0;
             Point subpath[] = new Point [wSize-1];
-            //Link subpath[] = new Link [wSize-1];
+            //Link subpath[] = new Link [wSize-1]; // link 매칭을 시도한 흔적..
             int indexOfsubpath[] = new int [wSize];
 
             // 현재 candidates와 다음 candidates로 가는 t.p와 e.p곱 중 최대 값을 가지는 curr와 그 index를 maximum_tpep[현재]에 저장
@@ -153,15 +154,18 @@ public class Main {
                 ArrayList<Candidate> curr_candidates = arrOfCandidates.get(i);
                 ArrayList<Candidate> next_candidates = arrOfCandidates.get(i+1);
                 maximum_tpep = 0;
+                System.out.println("========"+gpsPointArrayList.get(i)+"========");
                 for (Candidate cc : curr_candidates) {
-                    //System.out.println("Curr: "+cc.getPoint());
+                    System.out.println("Curr: "+cc.getPoint());
                     for (Candidate nc : next_candidates) {
-                        //System.out.print("["+cc.getPoint() + "] -> [" + nc.getPoint() + "]\t");
-                       // System.out.println("ep: "+cc.getEmissionProb() +" tp: "+tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()]);
+
+                        //System.out.println("ep: "+cc.getEmissionProb() +" tp: "+tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()]);
                         double prob = cc.getEmissionProb() * tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()];
                         if(maximum_tpep < prob) {
                             maximum_tpep = prob;
                             indexOfsubpath[index] = curr_candidates.indexOf(cc);
+                            System.out.print("["+cc.getPoint() + "] -> [" + nc.getPoint() + "]\t");
+                            System.out.println("maximum tpep updated: "+maximum_tpep);
                         }
                     }
                     //System.out.println("curr: [" + cc.getPoint() + "], maximum tpep: "+maximum_tpep);
@@ -177,26 +181,32 @@ public class Main {
                 j--;
             }
 
-            // subpath출력..덜덜
+            subpaths.add(subpath);
+            //subpath의 끝 점 매칭
+            matching = subpath[subpath.length-1];
+            matching_success.add(matching);
+            System.out.println("t: " + t);
+        }
+        // subpath출력..덜덜
+        int t = 0;
+        for (Point[] subpath : subpaths) {
             System.out.print(t + "] ");
             for (int  i=0;i<subpath.length;i++) {
                 System.out.print("["+subpath[i] + "]");
                 if (i!=subpath.length-1)
                     System.out.print(" ㅡ ");
             }
-            System.out.println();
-
-            //subpath의 끝 점 매칭
-            matching = subpath[subpath.length-1];
-            matching_success.add(matching);
+            System.out.println(); t++;
         }
-
+        
+        // origin->matched 출력
         double success_sum= 0;
         System.out.println("[Origin]\t->\t[Matched]");
-        for(int i =0; i< matching_success.size(); i++){
-            System.out.print(routePointArrayList.get(i+1) + "\t");
-            System.out.println(matching_success.get(i));
+        for(int i = 0; i< matching_success.size() ; i++){
+            System.out.print("[" + routePointArrayList.get(i+1) + "] -> [");
+            System.out.println(matching_success.get(i)+ "]");
             if (i != 0 && routePointArrayList.get(i+1) == matching_success.get(i)) success_sum ++;
+
         }
         System.out.println("Success prob = "+(100*(success_sum/(double)matching_success.size())) + "%");
         System.out.println(" Total: "+ matching_success.size() +"\n Succeed: "+success_sum+ "\n Failed: "+(matching_success.size()-success_sum));
