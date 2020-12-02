@@ -115,7 +115,7 @@ public class Main {
             arrOfCandidates.add(candidates);
         }
 
-        ///////////// matching /////////////
+        ///////////// matching ///////////// VITERBI 잘못짰다! 논문 참고해서 굿노트에 정리한 알고리즘으로 다시 짜기!
         // window size 입력받기
         System.out.print("Fixed Sliding Window Viterbi. Window size: ");
         Scanner scanner = new Scanner(System.in);
