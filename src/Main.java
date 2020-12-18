@@ -69,7 +69,7 @@ public class Main {
             int m = roadNetwork.getLink(i).nextLinksNum(roadNetwork);
             // 알고리즘대로 tp 지정
             for (int j = 0; j < n; j++) {
-                if (i == j) tp_matrix[i][j] = 1.0;
+                if (i == j) tp_matrix[i][j] = 0.5;
                 else if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, j))
                     tp_matrix[i][j] = 1.0/m;
                 else tp_matrix[i][j] = 0.0;
@@ -101,94 +101,96 @@ public class Main {
 
         /////// candidates 구하기 (arrOfCandidates 초기화)///////////
         for (int i = 0; i < gpsPointArrayList.size(); i++) {
-            ArrayList<Link> candidateLink = new ArrayList<>();
-            candidateLink.addAll(gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList, roadNetwork.nodeArrayList));
+            ArrayList<Link> candidateLinks = gpsPointArrayList.get(i).getPoint().findRadiusLink(roadNetwork.linkArrayList, roadNetwork.nodeArrayList);
             ArrayList<Candidate> candidates = new ArrayList<>();
-            for (int j = 0; j < candidateLink.size(); j++) {
-                ArrayList<Point> points = findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLink.get(j), 3);
+            for (int j = 0; j < candidateLinks.size(); j++) {
+                ArrayList<Point> points = findRadiusPoint(gpsPointArrayList.get(i).getPoint(), candidateLinks.get(j), 3);
                 for (int k = 0; k < points.size(); k++) {
-                    Candidate candidate= new Candidate(points.get(k), candidateLink.get(j));
+                    Candidate candidate= new Candidate(points.get(k), candidateLinks.get(j));
                     candidates.add(candidate);
-                    candidate.setEmissionProb(emission.Emission_pro(gpsPointArrayList.get(i), candidate.getPoint(), k+1));
+                    candidate.setEmissionProb(emission.Emission_pro(gpsPointArrayList.get(i), candidate.getPoint(), i+1));
                 }
             }
             arrOfCandidates.add(candidates);
         }
 
-        ///////////// matching ///////////// VITERBI 잘못짰다! 논문 참고해서 굿노트에 정리한 알고리즘으로 다시 짜기!
+        ///////////// matching ///////////// VITERBI 새로 짜기 시작!!
         // window size 입력받기
         System.out.print("Fixed Sliding Window Viterbi. Window size: ");
         Scanner scanner = new Scanner(System.in);
         int wSize = scanner.nextInt(); // window size
 
-        /*// window size보다 작은 경우의 gps point들은 emission prob만 따져서 매칭됨
-        for (int i = 0; i < wSize-1; i++) {
-            Point matching = new Point(0.0, 0.0);
-            ArrayList<Candidate> candidates = arrOfCandidates.get(i);
-            double min_ep = 0;
-            for(int j=0; j< candidates.size(); j++){
-                if(j == 0) {
-                    arrOfCandidates.get(i).get(j).setEmissionProb(emission.Emission_pro(gpsPointArrayList.get(i), candidates.get(i).getPoint(), i+1)); //gpspoint
-                    matching = candidates.get(i).getPoint();
-                }
-                else if(min_ep > emission.Emission_pro(gpsPointArrayList.get(i), candidates.get(i).getPoint(), i+1) ) {
-                    min_ep = emission.Emission_pro(gpsPointArrayList.get(i), candidates.get(i).getPoint(), i+1);
-                    matching = candidates.get(i).getPoint();
-                }
-            }
-            matching_success.add(matching);
-        }*/
         ArrayList<Point[]> subpaths = new ArrayList<>();
         System.out.println("\n\nhello\n\n");
-        // arrOfCandidates를 순회하며 subpath의 마지막 point를 matching_success에 추가하는 loop
+        // arrOfCandidates를 순회하며 (sliding window) subpath의 마지막 point를 matching_success에 추가하는 loop
+        // t points the end of window (sliding window)
         for (int t = wSize-1; t < arrOfCandidates.size(); t++) {
             Point matching;
-            double maximum_tpep = 0;
+            double maximum_prob = 0;
             Point subpath[] = new Point [wSize-1];
             //Link subpath[] = new Link [wSize-1]; // link 매칭을 시도한 흔적..
-            int indexOfsubpath[] = new int [wSize];
+            //int indexOfsubpath[] = new int [wSize];
 
             // 현재 candidates와 다음 candidates로 가는 t.p와 e.p곱 중 최대 값을 가지는 curr와 그 index를 maximum_tpep[현재]에 저장
-            int index = 0;
-            for (int i = t - wSize + 1; i < t; i++) {
+            for (int i = t - wSize + 1; i < t; i++) { // i moves in window
                 ArrayList<Candidate> curr_candidates = arrOfCandidates.get(i);
                 ArrayList<Candidate> next_candidates = arrOfCandidates.get(i+1);
-                maximum_tpep = 0;
-                System.out.println("========"+gpsPointArrayList.get(i)+"========");
-                for (Candidate cc : curr_candidates) {
-                    System.out.println("Curr: "+cc.getPoint());
-                    for (Candidate nc : next_candidates) {
-
-                        //System.out.println("ep: "+cc.getEmissionProb() +" tp: "+tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()]);
-                        double prob = cc.getEmissionProb() * tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()];
-                        if(maximum_tpep < prob) {
-                            maximum_tpep = prob;
-                            indexOfsubpath[index] = curr_candidates.indexOf(cc);
-                            System.out.print("["+cc.getPoint() + "] -> [" + nc.getPoint() + "]\t");
-                            System.out.println("maximum tpep updated: "+maximum_tpep);
+                //System.out.println("☆origin point:" + routePointArrayList.get(i));
+                //System.out.println("☆GPS point: " + gpsPointArrayList.get(i));
+                for (Candidate nc : next_candidates) {
+                    maximum_prob = 0;
+                    //System.out.println("  nc: "+nc.getPoint()+"/ ep: "+nc.getEmissionProb());
+                    for (Candidate cc : curr_candidates) {
+                        double prob = nc.getEmissionProb() * tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()];
+                        System.out.println("    cc: "+cc.getPoint()+"/ ep: "+cc.getEmissionProb()+"/ prob: "+prob);
+                        if (i == t - wSize + 1) { // window내 window의 시작 부분
+                            if(maximum_prob < prob * cc.getEmissionProb()) { // 최대의 acc_prob를 갱신하며 이전전
+                                maximum_prob = prob * cc.getEmissionProb();// window의 시작부분이므로 현재의 ep * 다음의 ep * 현재->다음의tp를 Acc_prob에 축적한다
+                                nc.setPrev_index(curr_candidates.indexOf(cc));
+                                nc.setAcc_prob(maximum_prob);
+                                //System.out.println("    MAX!");
+                            }
+                        }
+                        else { // window 내 그 외의 부분
+                            if(maximum_prob < prob * cc.getAcc_prob()) {
+                                maximum_prob = prob * cc.getAcc_prob(); // 현재의 acc_prob * 다음의 ep * 현재->다음의 tp를 Acc_prob에 축적한다
+                                nc.setPrev_index(curr_candidates.indexOf(cc));
+                                nc.setAcc_prob(maximum_prob);
+                                //System.out.println("    MAX!");
+                            }
                         }
                     }
-                    //System.out.println("curr: [" + cc.getPoint() + "], maximum tpep: "+maximum_tpep);
                 }
-                index ++;
             }
 
-            // indexOfSubpath에 subpath의 index가 순서대로 저장됨
-            // 이를 backtracking 하여 subpath 생성
-            int j = t-1;
-            for (int i = wSize -2; i>=0;i--) {
-                subpath[i] = arrOfCandidates.get(j).get(indexOfsubpath[i]).getPoint();
-                j--;
+            // 마지막 candidates 중 acc_prob가 가장 높은 것 max_last_candi에 저장
+            Candidate max_last_candi = new Candidate(); /*어쩐지 뭔가 찝찝해.. 생성자*/
+            double max_prob = 0;
+            for(Candidate candidate : arrOfCandidates.get(t)) {
+                if (max_prob < candidate.getAcc_prob()) {
+                    max_prob = candidate.getAcc_prob();
+                    max_last_candi = candidate;
+                }
+            }
+            // max_last_candi를 시작으로 back tracing하여 subpath구하기
+
+            Candidate tempCandi = arrOfCandidates.get(t-1).get(max_last_candi.getPrev_index());
+            subpath[wSize-2] = tempCandi.getPoint();
+            int _t = t-2;
+            for (int j = wSize-3; j>=0; j--) {
+                tempCandi = arrOfCandidates.get(_t--).get(tempCandi.getPrev_index());
+                subpath[j] = tempCandi.getPoint();
             }
 
             subpaths.add(subpath);
+
             //subpath의 끝 점 매칭
             matching = subpath[subpath.length-1];
             matching_success.add(matching);
             System.out.println("t: " + t);
         }
         // subpath출력..덜덜
-        int t = 0;
+        int t = wSize-2;
         for (Point[] subpath : subpaths) {
             System.out.print(t + "] ");
             for (int  i=0;i<subpath.length;i++) {
@@ -203,15 +205,18 @@ public class Main {
         double success_sum= 0;
         System.out.println("[Origin]\t->\t[Matched]");
         for(int i = 0; i< matching_success.size() ; i++){
-            System.out.print("[" + routePointArrayList.get(i+1) + "] -> [");
+            System.out.print("[" + routePointArrayList.get(i+wSize-2) + "] -> [");
             System.out.println(matching_success.get(i)+ "]");
-            if (i != 0 && routePointArrayList.get(i+1) == matching_success.get(i)) success_sum ++;
-
+            System.out.println(routePointArrayList.get(i+wSize-2).getX() +" "+ matching_success.get(i).getX()
+                    +" "+ routePointArrayList.get(i+wSize-2).getY() +" "+matching_success.get(i).getY());
+            if ((routePointArrayList.get(i+wSize-2).getX().doubleValue() == matching_success.get(i).getX().doubleValue())
+            && (routePointArrayList.get(i+wSize-2).getY().doubleValue() == matching_success.get(i).getY().doubleValue())) {
+                success_sum ++;
+                System.out.println(i);
+            }
         }
         System.out.println("Success prob = "+(100*(success_sum/(double)matching_success.size())) + "%");
         System.out.println(" Total: "+ matching_success.size() +"\n Succeed: "+success_sum+ "\n Failed: "+(matching_success.size()-success_sum));
-        
-
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){
@@ -228,48 +233,4 @@ public class Main {
         }
         return resultPoint;
     }
-
-    /*//////////////////// FSW viterbi 메서드////////////////////
-    public static Point FSW(ArrayList<Candidate> candidates, ArrayList<GPSPoint> gpsPointArrayList
-            , double[][] tp, ArrayList<Link> links, int t, int wSize) {
-        Point matching = new Point(0.0, 0.0);
-
-        double maximum_tpep = 0;
-
-        if(t < wSize){
-            double min_ep = 0;
-            for(int i=0; i< candidates.size(); i++){
-                if(i==0) {
-                    min_ep = emission.Emission_pro(gpsPointArrayList.get(t - 1), candidates.get(i).getPoint(), t); //gpspoint
-                    matching = candidates.get(i).getPoint();
-                }
-                else if(min_ep > emission.Emission_pro(gpsPointArrayList.get(t-1), candidates.get(i).getPoint(), t) ) {
-                    min_ep = emission.Emission_pro(gpsPointArrayList.get(t-1), candidates.get(i).getPoint(), t);
-                    matching = candidates.get(i).getPoint();
-                }
-            }
-            return matching;
-        }
-
-        maximum_tpep=0;
-        for(int i =0; i< candidates.size(); i++){
-            double tpep=0;
-            double tp_ = tp[matching_success.get(t-2).involvedLinkID(links)][candidates.get(i).getInvolvedLink().getLinkID()];
-            double ep_ = emission.Emission_pro(gpsPointArrayList.get(t-1), candidates.get(i).getPoint(), t);
-            tpep = (ep_)* (1000000000*tp_);
-            *//* // for test
-            System.out.println("Candidate: " +candidates.get(i));
-            System.out.println("tp: "+ tp_+" 비율tp: "+ 1000000000*tp_);
-            System.out.println("ep: "+ ep_+" 비율ep: "+ 0.00000001*ep_);
-            System.out.print("tpep : ");
-            System.out.println(tpep+"\n==============================");
-            *//*
-            if(maximum_tpep < tpep){
-                maximum_tpep = tpep;
-                matching = candidates.get(i).getPoint();
-            }
-        }
-
-        return matching;
-    }*/
 }

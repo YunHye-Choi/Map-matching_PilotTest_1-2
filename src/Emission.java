@@ -19,7 +19,7 @@ public class Emission {
         ep_distance = coordDistanceofPoints(candidate, gpspoint); //후보point와 gps point의 유클리드 직선 거리
 
         if(size==1 || size == 2) {
-            return ep_distance;
+            return (1/ep_distance);
         } //size: gps배열 사이즈
 
         double ep = 0;
