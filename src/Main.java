@@ -297,8 +297,8 @@ public class Main {
         maximum_tpep=0;
         for(int i =0; i< candidates.size(); i++){
             double tpep=0;
-            tpep = (12 * emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size)) *
-                    (8*transition.Transition_pro(gpsPointArrayList.get(size-2), gpsPointArrayList.get(size-1), routePointArrayList.get(size-2), candidates.get(i)));
+            tpep = (emission.Emission_pro(gpsPointArrayList.get(size-1), candidates.get(i), size)) *
+                    (transition.Transition_pro(gpsPointArrayList.get(size-2), gpsPointArrayList.get(size-1), routePointArrayList.get(size-2), candidates.get(i)));
             //System.out.print("tpep : ");
             //System.out.println(tpep);
             if(maximum_tpep < tpep){
