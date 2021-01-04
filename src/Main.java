@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class Main {
     // added from branch test_merge
     private static Emission emission = new Emission();
+    private static Transition transition = new Transition();
 
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("===== [YSY] Map-matching PilotTest 1-2 =====");
@@ -18,7 +19,7 @@ public class Main {
         FileIO fileIO = new FileIO(testNo);
 
         // added from branch test_merge
-        ArrayList<Point> matching_success = new ArrayList<>();
+        ArrayList<Link> matching_success = new ArrayList<>();
 
         // 파일에서 읽어와 도로네트워크 생성
         RoadNetwork roadNetwork = fileIO.generateRoadNetwork();
@@ -61,36 +62,14 @@ public class Main {
             System.out.println(gpsPointArrayList.get(i));
         }
 
-        ///////////// Transition probability 구하기 ////////////////
-        int n = roadNetwork.getLinksSize();
-        double [][] tp_matrix = new double[n][n];
-        for (int i = 0; i < n;i++) {
-            // 여기에서 link[i]가 몇개의 link와 맞닿아있는지 int 변수 선언해서 저장
-            int m = roadNetwork.getLink(i).nextLinksNum(roadNetwork);
-            // 알고리즘대로 tp 지정
-            for (int j = 0; j < n; j++) {
-                if (i == j) tp_matrix[i][j] = 0.5;
-                else if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, j))
-                    tp_matrix[i][j] = 1.0/m;
-                else tp_matrix[i][j] = 0.0;
-            }
-        }
-
-        // i - j - k로 맞닿아있을떄 tp[i][k] = tp[i][j] * tp[j][k]
-        for (int i = 0; i < n;i++) {
-            for (int j = 0; j < n; j++) {
-                for (int k = 0; k< n; k++) {
-                    if (i == k) continue;
-                    if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, k)) continue;
-                    if (roadNetwork.getLink(i).isLinkNextTo(roadNetwork, j) && roadNetwork.getLink(j).isLinkNextTo(roadNetwork, k))
-                        tp_matrix[i][k] = tp_matrix[i][j] * tp_matrix[j][k];
-                }
-            }
-        }
         /////////////////////////////////////////////////////////////////
 
         for(int i=0; i<gpsPointArrayList.size(); i++){
             emission.Emission_Median(gpsPointArrayList.get(i), routePointArrayList.get(i));
+            if(i>0){
+                transition.Transition_Median(gpsPointArrayList.get(i-1), gpsPointArrayList.get(i),routePointArrayList.get(i-1), routePointArrayList.get(i));
+            }//매칭된 point로 해야하나.. 실제 point로 해야하나.. 의문?
+            //중앙값 저장
         }
 
         // origin route points와 랜덤하게 생성된 GPS points 500ms에 한번씩 출력하기
@@ -120,15 +99,15 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         int wSize = scanner.nextInt(); // window size
 
-        ArrayList<Point[]> subpaths = new ArrayList<>();
+        // **** subpath를 Link로 해보겠습니다!!!
+        ArrayList<Link[]> subpaths = new ArrayList<>();
         System.out.println("\n\nhello\n\n");
         // arrOfCandidates를 순회하며 (sliding window) subpath의 마지막 point를 matching_success에 추가하는 loop
         // t points the end of window (sliding window)
         for (int t = wSize-1; t < arrOfCandidates.size(); t++) {
-            Point matching;
+            Link matching;
             double maximum_prob = 0;
-            Point subpath[] = new Point [wSize-1];
-            //Link subpath[] = new Link [wSize-1]; // link 매칭을 시도한 흔적..
+            Link subpath[] = new Link [wSize-1]; // link 매칭을 시도한 흔적..
             //int indexOfsubpath[] = new int [wSize];
 
             // 현재 candidates와 다음 candidates로 가는 t.p와 e.p곱 중 최대 값을 가지는 curr와 그 index를 maximum_tpep[현재]에 저장
@@ -139,10 +118,13 @@ public class Main {
                 //System.out.println("☆GPS point: " + gpsPointArrayList.get(i));
                 for (Candidate nc : next_candidates) {
                     maximum_prob = 0;
+
                     //System.out.println("  nc: "+nc.getPoint()+"/ ep: "+nc.getEmissionProb());
                     for (Candidate cc : curr_candidates) {
-                        double prob = nc.getEmissionProb() * tp_matrix[cc.getInvolvedLink().getLinkID()][nc.getInvolvedLink().getLinkID()];
-                        System.out.println("    cc: "+cc.getPoint()+"/ ep: "+cc.getEmissionProb()+"/ prob: "+prob);
+                        double prob = nc.getEmissionProb()
+                                    * transition.Transition_pro(gpsPointArrayList.get(t-1), gpsPointArrayList.get(t), matching_success.get(t-1), nc.getPoint());
+
+                        //System.out.println("    cc: "+cc.getPoint()+"/ ep: "+cc.getEmissionProb()+"/ prob: "+prob);
                         if (i == t - wSize + 1) { // window내 window의 시작 부분
                             if(maximum_prob < prob * cc.getEmissionProb()) { // 최대의 acc_prob를 갱신하며 이전전
                                 maximum_prob = prob * cc.getEmissionProb();// window의 시작부분이므로 현재의 ep * 다음의 ep * 현재->다음의tp를 Acc_prob에 축적한다
@@ -175,23 +157,23 @@ public class Main {
             // max_last_candi를 시작으로 back tracing하여 subpath구하기
 
             Candidate tempCandi = arrOfCandidates.get(t-1).get(max_last_candi.getPrev_index());
-            subpath[wSize-2] = tempCandi.getPoint();
+            subpath[wSize-2] = tempCandi.getInvolvedLink();
             int _t = t-2;
             for (int j = wSize-3; j>=0; j--) {
                 tempCandi = arrOfCandidates.get(_t--).get(tempCandi.getPrev_index());
-                subpath[j] = tempCandi.getPoint();
+                subpath[j] = tempCandi.getInvolvedLink();
             }
 
             subpaths.add(subpath);
 
-            //subpath의 끝 점 매칭
+            //subpath의 끝 ****링크**** 매칭
             matching = subpath[subpath.length-1];
             matching_success.add(matching);
             System.out.println("t: " + t);
         }
         // subpath출력..덜덜
         int t = wSize-2;
-        for (Point[] subpath : subpaths) {
+        for (Link[] subpath : subpaths) {
             System.out.print(t + "] ");
             for (int  i=0;i<subpath.length;i++) {
                 System.out.print("["+subpath[i] + "]");
@@ -204,10 +186,11 @@ public class Main {
         // origin->matched 출력
         double success_sum= 0;
         System.out.println("[Origin]\t->\t[Matched]");
+        /*
         for(int i = 0; i< matching_success.size() ; i++){
             System.out.print("[" + routePointArrayList.get(i+wSize-2) + "] -> [");
             System.out.println(matching_success.get(i)+ "]");
-            System.out.println(routePointArrayList.get(i+wSize-2).getX() +" "+ matching_success.get(i).getX()
+            System.out.println(routePointArrayList.get(i+wSize-2) +" "+ matching_success.get(i).getX()
                     +" "+ routePointArrayList.get(i+wSize-2).getY() +" "+matching_success.get(i).getY());
             if ((routePointArrayList.get(i+wSize-2).getX().doubleValue() == matching_success.get(i).getX().doubleValue())
             && (routePointArrayList.get(i+wSize-2).getY().doubleValue() == matching_success.get(i).getY().doubleValue())) {
@@ -217,6 +200,8 @@ public class Main {
         }
         System.out.println("Success prob = "+(100*(success_sum/(double)matching_success.size())) + "%");
         System.out.println(" Total: "+ matching_success.size() +"\n Succeed: "+success_sum+ "\n Failed: "+(matching_success.size()-success_sum));
+        */
+
     }
 
     public static Double coordDistanceofPoints(Point a, Point b){
