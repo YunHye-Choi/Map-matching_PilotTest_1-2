@@ -80,16 +80,16 @@ public class RoadNetwork {
             }
         } else if (testNo == 2) { // 유네 데이터
             // node0 에서 node 55로 가는 경로
-            /*
-            int[] routeNodes = {0,1, 6, 12, 25, 26, 27, 33, 34};
-            for (int i=0; i<routeNodes.length-1; i++) {
-                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
-            }*/
-            // 'ㅁ'자형 데이터
-            int[] routeNodes = {0, 2, 3};
+
+            int[] routeNodes = {0, 1, 6, 12, 25, 26, 27, 33, 34};
             for (int i=0; i<routeNodes.length-1; i++) {
                 routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
             }
+            // 'ㅁ'자형 데이터
+            /*int[] routeNodes = {0, 2, 3};
+            for (int i=0; i<routeNodes.length-1; i++) {
+                routePoints.addAll(getLink(routeNodes[i], routeNodes[i+1]).getInvolvingPointList());
+            }*/
         } else if (testNo == 3) { // 유림이 데이터
             // 'ㄹ'자형 데이터
             int[] routeNodes = {0, 1, 4, 5};

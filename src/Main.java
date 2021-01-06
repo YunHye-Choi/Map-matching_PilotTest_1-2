@@ -135,8 +135,7 @@ public class Main {
             for (int i = t - wSize + 1; i < t; i++) { // i moves in window
                 ArrayList<Candidate> curr_candidates = arrOfCandidates.get(i);
                 ArrayList<Candidate> next_candidates = arrOfCandidates.get(i+1);
-                //System.out.println("☆origin point:" + routePointArrayList.get(i));
-                //System.out.println("☆GPS point: " + gpsPointArrayList.get(i));
+
                 for (Candidate nc : next_candidates) {
                     maximum_prob = 0;
                     //System.out.println("  nc: "+nc.getPoint()+"/ ep: "+nc.getEmissionProb());
@@ -156,7 +155,6 @@ public class Main {
                                 maximum_prob = prob * cc.getAcc_prob(); // 현재의 acc_prob * 다음의 ep * 현재->다음의 tp를 Acc_prob에 축적한다
                                 nc.setPrev_index(curr_candidates.indexOf(cc));
                                 nc.setAcc_prob(maximum_prob);
-                                //System.out.println("    MAX!");
                             }
                         }
                     }
